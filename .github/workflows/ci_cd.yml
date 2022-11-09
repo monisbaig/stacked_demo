@@ -1,0 +1,51 @@
+name: Testing-Android-CD
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  flutter_version: "3.3.7"
+  java_version: "12.x"
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ env.java_version }}
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v1
+        with:
+          path: /Users/runner/hostedtoolcache/flutter
+          key: ${{ runner.OS }}-flutter-install-cache-${{ env.flutter_version }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v1
+        with:
+          flutter-version: ${{ env.flutter_version }}
+          channel: 'stable'
+
+      - name: Pub Get Packages
+        run: flutter pub get
+
+      - name: Test
+        run: flutter test
+
+      - name: Build APK
+        run: flutter build apk
+
+      - name: Save APK ro Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: APK
+          path: build\app\outputs\flutter-apk\app-release.apk
+
